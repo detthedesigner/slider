@@ -130,6 +130,14 @@
       playing ? stop() : start();
     });
   </script>
-</body>
-
+  
+  </body>
+  function showFrame(i) {
+    const file = frameFile(i);
+    console.log("Loading:", file);
+    img.src = file;
+    label.textContent = i;
+  }  
 </html>
+
+
