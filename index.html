@@ -24,8 +24,9 @@
       -webkit-user-drag: none;
     }
     input[type="range"] { width: 100%; margin-top: 14px; }
-    .row { display: flex; justify-content: space-between; margin-top: 10px; color: #333; align-items: center; }
-    button { padding: 8px 12px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+    .row { display: flex; justify-content: space-between; margin-top: 10px; color: #333; align-items: center; gap: 12px; }
+    button { padding: 8px 12px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; background: white; }
+    .hint { font-size: 13px; color: #666; margin-top: 8px; }
   </style>
 </head>
 
@@ -41,23 +42,24 @@
 
     <div class="row">
       <span>Frame: <span id="label">0</span></span>
-      <button id="play">Play</button>
+      <button id="play" type="button">Play</button>
+    </div>
+
+    <div class="hint">
+      If images don’t load, open DevTools → Console to see the exact filename it’s trying.
     </div>
   </div>
 
   <script>
     // =======================
-    // EDIT THESE TWO SETTINGS
+    // EDIT THESE IF NEEDED
     // =======================
-    const frameCount = 39; // <-- change to how many frames you actually have
-    const ext = "JPG";      // <-- "png" or "jpg" depending on your files
-
-    // Folder name stays the same
-    const folder = "frames";
-
-    // Your filename base (everything before the last number)
+    const frameCount = 39;                 // total frames (0..38 if 39 frames)
+    const folder = "frames";               // folder in repo
     const baseName = "Anticipation-001-001-0001_";
-    // ================================================
+    const ext = "JPG";                     // MUST match GitHub exactly: "jpg" or "JPG" or "png"
+    const fps = 24;                        // play speed
+    // =======================
 
     const img = document.getElementById("frame");
     const slider = document.getElementById("slider");
@@ -65,23 +67,30 @@
     const playBtn = document.getElementById("play");
 
     slider.max = frameCount - 1;
+    slider.value = 0;
+    label.textContent = "0";
 
-    // Converts 0 -> "0000", 1 -> "0001", 25 -> "0025"
     function pad4(n) {
       return String(n).padStart(4, "0");
     }
 
-    // Builds the filename for frame i
     function frameFile(i) {
       return `${folder}/${baseName}${pad4(i)}.${ext}`;
     }
 
+    // Helpful error logging (shows which file is missing)
+    img.addEventListener("error", () => {
+      console.warn("Image failed to load:", img.src);
+    });
+
     function showFrame(i) {
-      img.src = frameFile(i);
-      label.textContent = i;
+      const file = frameFile(i);
+      console.log("Loading:", file);
+      img.src = file;
+      label.textContent = String(i);
     }
 
-    // Preload frames (helps smooth scrubbing)
+    // Preload frames (optional but smoother)
     const cache = [];
     for (let i = 0; i < frameCount; i++) {
       const pre = new Image();
@@ -89,7 +98,7 @@
       cache.push(pre);
     }
 
-    // Smooth slider update
+    // Smooth scrubbing
     let rafPending = false;
     slider.addEventListener("input", () => {
       if (rafPending) return;
@@ -103,7 +112,7 @@
     // Start on frame 0
     showFrame(0);
 
-    // Optional play/pause button
+    // Play / Pause
     let playing = false;
     let timer = null;
 
@@ -116,13 +125,13 @@
         v = (v + 1) % frameCount;
         slider.value = v;
         showFrame(v);
-      }, 1000 / 24); // 24 fps
+      }, 1000 / fps);
     }
 
     function stop() {
       playing = false;
       playBtn.textContent = "Play";
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
       timer = null;
     }
 
@@ -130,14 +139,5 @@
       playing ? stop() : start();
     });
   </script>
-  
-  </body>
-  function showFrame(i) {
-    const file = frameFile(i);
-    console.log("Loading:", file);
-    img.src = file;
-    label.textContent = i;
-  }  
+</body>
 </html>
-
-
